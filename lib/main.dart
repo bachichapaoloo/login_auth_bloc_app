@@ -1,6 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:login_auth_bloc_app/core/auth_guard.dart';
+import 'package:login_auth_bloc_app/logic/auth_bloc/auth_bloc.dart';
+import 'package:login_auth_bloc_app/logic/auth_bloc/auth_event.dart';
+import 'package:login_auth_bloc_app/presentation/screens/home_screen.dart';
+import 'package:login_auth_bloc_app/presentation/screens/login_screen.dart';
+import 'package:login_auth_bloc_app/repositories/auth_repository.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+  await Hive.openBox('auth_box');
+
   runApp(const MyApp());
 }
 
@@ -9,26 +23,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Login/Auth BLoC Practice',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Home Page'),
+    return BlocProvider(
+      create: (context) => AuthBloc(authRepository: AuthRepository())..add(AuthCheckRequested()),
+      child: MaterialApp(
+        title: 'Auth Flow Assignment',
+        routes: {
+          '/': (context) => const AuthGuard(),
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+        },
+      ),
     );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("Hello World")));
   }
 }
